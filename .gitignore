@@ -1,0 +1,47 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Local env files (MUST be ignored to protect API keys)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local.backup
+.env.*.local
+
+# Python virtual environment folders
+venv/
+.venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+
+# Next.js and frontend build directories
+.next/
+out/
+build/
+dist/
+tsconfig.tsbuildinfo
+
+# IDEs and OS files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Uploads and temporary directories
+backend/express/uploads/*
+!backend/express/uploads/.gitkeep
+temp/
+tmp/
+logs/
+*.log
