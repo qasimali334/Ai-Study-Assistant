@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../components/AuthProvider';
 import { LineChart, CheckCircle2, TrendingUp, HelpCircle, FileText, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 
 interface Document {
@@ -55,6 +55,7 @@ const getConfidenceColor = (conf: number) => {
 };
 
 export default function PaperAnalytics() {
+  const { session } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   
@@ -68,10 +69,8 @@ export default function PaperAnalytics() {
 
   useEffect(() => {
     const fetchDocs = async () => {
+      if (!session) return;
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
         const res = await fetch(`${apiUrl}/api/documents`, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
@@ -88,7 +87,7 @@ export default function PaperAnalytics() {
       }
     };
     fetchDocs();
-  }, [apiUrl]);
+  }, [apiUrl, session]);
 
   const handleToggleSelect = (docId: string) => {
     setSelectedDocIds((prev) =>
@@ -101,10 +100,12 @@ export default function PaperAnalytics() {
     setAnalyzing(true);
     setAnalysisResult(null);
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    if (!session) {
+      setAnalyzing(false);
+      return;
+    }
 
+    try {
       const res = await fetch(`${apiUrl}/api/analytics/analyze`, {
         method: 'POST',
         headers: {

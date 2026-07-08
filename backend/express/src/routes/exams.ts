@@ -35,7 +35,7 @@ router.post('/generate', requireAuth, async (req: AuthenticatedRequest, res: Res
     }
 
     // 2. Call FastAPI Python service to construct exam questions
-    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     const response = await axios.post(`${fastapiUrl}/generate-exam`, {
       document_id,
       exam_type,
@@ -67,8 +67,14 @@ router.post('/generate', requireAuth, async (req: AuthenticatedRequest, res: Res
     return res.status(200).json(exam);
 
   } catch (err: any) {
-    console.error('Exam generation error:', err.message);
-    return res.status(500).json({ error: err.message || 'An error occurred during exam generation.' });
+    console.error('Exam generation error:', err.message || err);
+    let errorMessage = 'An error occurred during exam generation.';
+    if (err.code === 'ECONNREFUSED' || err.message?.includes('ECONNREFUSED')) {
+      errorMessage = 'AI Exam Generation Service is offline. Please make sure the Python FastAPI backend is running on port 8000.';
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    return res.status(500).json({ error: errorMessage });
   }
 });
 

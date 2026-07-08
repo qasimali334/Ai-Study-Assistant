@@ -4,16 +4,19 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import { Sparkles, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { useAuth } from '../../components/AuthProvider';
+import { Sparkles, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { session, loading: authLoading } = useAuth();
   
   // Set tab based on query param ?tab=signup or default to login
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -28,20 +31,32 @@ function AuthContent() {
 
   // Check if session already exists, and redirect to dashboard
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.push('/dashboard');
-      }
-    });
-  }, [router]);
+    if (!authLoading && session) {
+      router.push('/dashboard');
+    }
+  }, [session, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
+    // 1. Validation Checks
     if (!email || !password) {
       setMessage({ type: 'error', text: 'Please fill in all fields.' });
+      setLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setMessage({ type: 'error', text: 'Please enter a valid email address.' });
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters long.' });
       setLoading(false);
       return;
     }
@@ -66,13 +81,28 @@ function AuthContent() {
 
         if (error) throw error;
 
-        setMessage({
-          type: 'success',
-          text: 'Account created! Please check your email inbox to verify your account before logging in.'
-        });
+        if (data.session) {
+          // If auto-confirm is enabled and we get a session immediately
+          router.push('/dashboard');
+        } else {
+          setMessage({
+            type: 'success',
+            text: 'Account created! Please check your email inbox to verify your account before logging in.'
+          });
+        }
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'An authentication error occurred.' });
+      console.error('Auth error response:', err);
+      
+      // Developer-friendly message for Supabase free-tier SMTP limits
+      if (err.code === 'over_email_send_rate_limit' || err.message?.toLowerCase().includes('rate limit')) {
+        setMessage({
+          type: 'error',
+          text: 'Email verification rate limit exceeded (Max 3 per hour). If you just registered, please verify via the email sent to you, or ask the project admin to configure a custom SMTP server.'
+        });
+      } else {
+        setMessage({ type: 'error', text: err.message || 'An authentication error occurred.' });
+      }
     } finally {
       setLoading(false);
     }
@@ -97,7 +127,7 @@ function AuthContent() {
           {/* Header Toggle */}
           <div className="flex border-b border-slate-100 pb-4 mb-6">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={() => { setIsLogin(true); setMessage(null); }}
               className={`flex-1 text-center pb-2.5 font-bold text-sm transition-all ${
                 isLogin ? 'border-b-2 border-primary-500 text-primary-600' : 'text-slate-400 hover:text-slate-600'
               }`}
@@ -105,7 +135,7 @@ function AuthContent() {
               Sign In
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={() => { setIsLogin(false); setMessage(null); }}
               className={`flex-1 text-center pb-2.5 font-bold text-sm transition-all ${
                 !isLogin ? 'border-b-2 border-primary-500 text-primary-600' : 'text-slate-400 hover:text-slate-600'
               }`}
@@ -150,12 +180,19 @@ function AuthContent() {
                   <Lock className="h-4.5 w-4.5 text-slate-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-slate-50/50"
+                  className="block w-full pl-10 pr-10 py-3 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-slate-50/50"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                </button>
               </div>
             </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../components/AuthProvider';
 import { Trophy, HelpCircle, ArrowRight, CheckCircle, XCircle, Award, Sparkles, BookOpen, RefreshCw, Loader2 } from 'lucide-react';
 
 interface Document {
@@ -33,10 +33,11 @@ interface Exam {
 }
 
 export default function ExamGeniePractice() {
+  const { session } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   const [selectedDocId, setSelectedDocId] = useState('');
-  
+
   // Generator Configs
   const [examType, setExamType] = useState<'mcq' | 'short' | 'long'>('mcq');
   const [questionCount, setQuestionCount] = useState(5);
@@ -45,7 +46,7 @@ export default function ExamGeniePractice() {
   // Active Exam state
   const [activeExam, setActiveExam] = useState<Exam | null>(null);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  
+
   // MCQ Interactive state
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -59,10 +60,8 @@ export default function ExamGeniePractice() {
 
   useEffect(() => {
     const fetchDocs = async () => {
+      if (!session) return;
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
         const res = await fetch(`${apiUrl}/api/documents`, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
@@ -79,17 +78,19 @@ export default function ExamGeniePractice() {
       }
     };
     fetchDocs();
-  }, [apiUrl]);
+  }, [apiUrl, session]);
 
   const handleGenerateExam = async () => {
     if (!selectedDocId) return;
     setGenerating(true);
     setActiveExam(null);
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    if (!session) {
+      setGenerating(false);
+      return;
+    }
 
+    try {
       const res = await fetch(`${apiUrl}/api/exams/generate`, {
         method: 'POST',
         headers: {
@@ -217,11 +218,10 @@ export default function ExamGeniePractice() {
                     key={style}
                     type="button"
                     onClick={() => setExamType(style)}
-                    className={`py-3.5 rounded-xl font-bold text-xs border transition-all uppercase tracking-wider ${
-                      examType === style
+                    className={`py-3.5 rounded-xl font-bold text-xs border transition-all uppercase tracking-wider ${examType === style
                         ? 'border-primary-500 bg-primary-50/50 text-primary-700'
                         : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     {style === 'mcq' ? 'MCQs' : style === 'short' ? 'Short Qs' : 'Long Essay'}
                   </button>
@@ -238,11 +238,10 @@ export default function ExamGeniePractice() {
                     key={num}
                     type="button"
                     onClick={() => setQuestionCount(num)}
-                    className={`py-2 rounded-xl font-bold text-xs border transition-all ${
-                      questionCount === num
+                    className={`py-2 rounded-xl font-bold text-xs border transition-all ${questionCount === num
                         ? 'border-primary-500 bg-primary-50/50 text-primary-700'
                         : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-                    }`}
+                      }`}
                   >
                     {num} Questions
                   </button>
@@ -274,7 +273,7 @@ export default function ExamGeniePractice() {
       {/* Render Active Exam Sheet */}
       {activeExam && (
         <div className="max-w-3xl mx-auto space-y-6">
-          
+
           {/* Exam Info Card */}
           <div className="border border-slate-200 rounded-2xl bg-white p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -295,7 +294,7 @@ export default function ExamGeniePractice() {
           {activeExam.exam_type === 'mcq' ? (
             currentQuestionIdx < activeExam.questions.length ? (
               <div className="border border-slate-200 rounded-2xl bg-white p-6 md:p-8 shadow-premium space-y-6 animate-fade-in">
-                
+
                 {/* Progress bar */}
                 <div className="flex justify-between items-center text-xs font-bold text-slate-400 pb-3 border-b border-slate-100 uppercase tracking-wider">
                   <span>Question {currentQuestionIdx + 1} of {activeExam.questions.length}</span>
@@ -312,7 +311,7 @@ export default function ExamGeniePractice() {
                   {(activeExam.questions[currentQuestionIdx] as MCQQuestion).options.map((opt, oIdx) => {
                     const isSelected = selectedAnswer === opt;
                     const correctAns = (activeExam.questions[currentQuestionIdx] as MCQQuestion).correct_answer;
-                    
+
                     let btnStyle = 'border-slate-200 hover:bg-slate-50 text-slate-600';
                     if (isSelected) {
                       btnStyle = 'border-primary-500 bg-primary-50 text-primary-700';
@@ -449,7 +448,7 @@ export default function ExamGeniePractice() {
                   )}
                 </div>
               ))}
-              
+
               <div className="flex justify-center pt-4">
                 <button
                   onClick={() => {

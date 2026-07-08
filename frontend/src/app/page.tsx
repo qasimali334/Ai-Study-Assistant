@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BookOpen, Brain, GraduationCap, Sparkles, Trophy, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
+import { BookOpen, Brain, GraduationCap, Sparkles, Trophy, ArrowRight, Cpu } from 'lucide-react';
 
 export default function LandingPage() {
   const containerVariants = {
@@ -41,7 +41,6 @@ export default function LandingPage() {
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
           <a href="#features" className="hover:text-primary-600 transition-colors">Features</a>
           <a href="#workflow" className="hover:text-primary-600 transition-colors">How it works</a>
-          <a href="#pricing" className="hover:text-primary-600 transition-colors">Pricing</a>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -219,87 +218,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 max-w-5xl mx-auto relative">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-slate-600 text-sm sm:text-base">
-            Get started for free, no credit card required. Upgrade when you need more storage.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          {/* Free Tier */}
-          <div className="border border-slate-200 bg-white p-8 rounded-2xl shadow-sm flex flex-col justify-between">
-            <div>
-              <span className="text-sm font-extrabold text-primary-600 uppercase tracking-widest">Basic</span>
-              <h3 className="text-4xl font-black text-slate-900 mt-4 mb-2">Free</h3>
-              <p className="text-slate-500 text-xs mb-6">Great for trying out ExamGenie</p>
-              
-              <ul className="space-y-4 text-slate-600 text-sm border-t border-slate-100 pt-6">
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Upload up to 2 PDFs (max 10MB each)</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>30 AI Tutor messages per day</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Basic MCQ Generation</span>
-                </li>
-              </ul>
-            </div>
-
-            <Link href="/auth?tab=signup" className="mt-8 w-full inline-flex justify-center items-center py-3 px-4 border border-slate-300 rounded-full font-bold text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-              Sign Up Free
-            </Link>
-          </div>
-
-          {/* Pro Tier */}
-          <div className="border-2 border-primary-500 bg-white p-8 rounded-2xl shadow-premium relative flex flex-col justify-between">
-            <div className="absolute top-0 right-8 transform -translate-y-1/2 bg-primary-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
-              Most Popular
-            </div>
-
-            <div>
-              <span className="text-sm font-extrabold text-primary-600 uppercase tracking-widest">Scholar</span>
-              <h3 className="text-4xl font-black text-slate-900 mt-4 mb-2">$9<span className="text-lg font-normal text-slate-400">/mo</span></h3>
-              <p className="text-slate-500 text-xs mb-6">Designed for high-performing students</p>
-              
-              <ul className="space-y-4 text-slate-600 text-sm border-t border-slate-100 pt-6">
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Unlimited uploads (textbooks & past papers)</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Unlimited AI Tutor queries</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Advanced MCQs, Short & Long Q&A</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-green-500 shrink-0" />
-                  <span>Predictive Analytics & Syllabus Coverage</span>
-                </li>
-              </ul>
-            </div>
-
-            <Link href="/auth?tab=signup" className="mt-8 w-full inline-flex justify-center items-center py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white rounded-full font-bold text-sm shadow-premium transition-colors">
-              Upgrade to Scholar
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-slate-200/50 py-12 px-6 bg-slate-100 text-center text-slate-500 text-xs">
-        <p>© 2026 ExamGenie AI. Built with Next.js, Express, Supabase, and FastAPI.</p>
+        <p>© 2026 ExamGenie AI. All rights reserved.</p>
       </footer>
     </div>
   );

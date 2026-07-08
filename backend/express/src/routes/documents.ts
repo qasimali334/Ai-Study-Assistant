@@ -108,7 +108,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: Authentic
 
     // 4. Send request to FastAPI backend to trigger RAG parsing asynchronously
     // We run it as background action so Express can respond immediately to the client
-    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     
     // Fire-and-forget ingestion triggered asynchronously
     axios.post(`${fastapiUrl}/ingest`, {
@@ -217,7 +217,7 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res: Respon
     }
 
     // 4. Notify FastAPI RAG Backend to wipe Pinecone namespace
-    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     axios.delete(`${fastapiUrl}/documents/${id}`).catch((err) => {
       console.error(`Failed to wipe vectors for document ${id} from Pinecone:`, err.message);
     });

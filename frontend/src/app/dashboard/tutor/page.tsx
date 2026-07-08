@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import ReactMarkdown from 'react-markdown';
-import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../components/AuthProvider';
 import {
   Brain, Send, Plus, RefreshCw, BookOpen, FileText, Sparkles,
   Loader2, Upload, X, MessageSquare, File, CheckCircle,
@@ -39,6 +39,7 @@ interface ChatMessage {
 }
 
 export default function AISyllabusTutor() {
+  const { session } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -62,9 +63,8 @@ export default function AISyllabusTutor() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const fetchDocsAndSessions = async () => {
+    if (!session) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
       const [docRes, sessRes] = await Promise.all([
         fetch(`${apiUrl}/api/documents`, { headers: { 'Authorization': `Bearer ${session.access_token}` } }),
         fetch(`${apiUrl}/api/chat/sessions`, { headers: { 'Authorization': `Bearer ${session.access_token}` } }),
@@ -88,14 +88,16 @@ export default function AISyllabusTutor() {
     }
   };
 
-  useEffect(() => { fetchDocsAndSessions(); }, [apiUrl]);
+  useEffect(() => {
+    if (session) {
+      fetchDocsAndSessions();
+    }
+  }, [session, apiUrl]);
 
   useEffect(() => {
-    if (!activeSessionId) return;
+    if (!activeSessionId || !session) return;
     let socket: Socket;
-    const connect = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    const connect = () => {
       socket = io(apiUrl, { auth: { token: session.access_token } });
       socketRef.current = socket;
       socket.on('connect', () => socket.emit('joinSession', { sessionId: activeSessionId }));
@@ -109,8 +111,6 @@ export default function AISyllabusTutor() {
     const loadHistory = async () => {
       setLoadingMessages(true);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
         const res = await fetch(`${apiUrl}/api/chat/sessions/${activeSessionId}/messages`, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
@@ -122,7 +122,7 @@ export default function AISyllabusTutor() {
     };
     loadHistory().then(connect);
     return () => { if (socket) socket.disconnect(); };
-  }, [activeSessionId, apiUrl]);
+  }, [activeSessionId, apiUrl, session]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -150,10 +150,9 @@ export default function AISyllabusTutor() {
   };
 
   const handleCreateSession = async () => {
+    if (!session) return;
     const title = prompt('Session name:') || 'Study Session';
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
       const res = await fetch(`${apiUrl}/api/chat/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
@@ -166,9 +165,8 @@ export default function AISyllabusTutor() {
   const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this study chat session?')) return;
+    if (!session) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
       const res = await fetch(`${apiUrl}/api/chat/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${session.access_token}` }

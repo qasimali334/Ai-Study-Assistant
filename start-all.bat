@@ -6,7 +6,7 @@ echo =======================================================
 echo.
 
 echo Launching Python FastAPI RAG Service...
-start "ExamGenie - Python AI Service" cmd /k "cd backend\python && echo Activating virtual environment... && if exist venv (call venv\Scripts\activate && uvicorn main:app --reload --port 8000) else (echo Warning: Virtual environment 'venv' not found! Create one first.)"
+start "ExamGenie - Python AI Service" cmd /k "cd backend\python && echo Activating virtual environment... && if exist venv (call venv\Scripts\activate && venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000) else (echo Warning: Virtual environment 'venv' not found! Create one first.)"
 
 echo Launching Node.js Express API Gateway...
 start "ExamGenie - Express Gateway" cmd /k "cd backend\express && echo Starting Express gateway... && npm run dev"

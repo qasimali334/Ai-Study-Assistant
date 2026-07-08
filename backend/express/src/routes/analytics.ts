@@ -36,7 +36,7 @@ router.post('/analyze', requireAuth, async (req: AuthenticatedRequest, res: Resp
     }
 
     // 2. Call FastAPI Python service to aggregate trends
-    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+    const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
     const response = await axios.post(`${fastapiUrl}/analyze-trends`, {
       document_ids
     });

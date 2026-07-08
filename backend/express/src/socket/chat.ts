@@ -83,7 +83,7 @@ export function setupChatSockets(io: Server) {
         socket.to(sessionId).emit('aiTyping', { sessionId, isTyping: true });
 
         // C. Fetch context and answer from FastAPI RAG Service
-        const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+        const fastapiUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:8000';
         const response = await axios.post(`${fastapiUrl}/query`, {
           document_id: documentId,
           query: text

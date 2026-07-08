@@ -1,5 +1,6 @@
 import './globals.css';
 import { Metadata } from 'next';
+import { AuthProvider } from '../components/AuthProvider';
 
 export const metadata: Metadata = {
   title: 'ExamGenie | AI Syllabus Tutor & Exam Generator',
@@ -17,7 +18,9 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="antialiased min-h-screen bg-[#fafbfc]">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

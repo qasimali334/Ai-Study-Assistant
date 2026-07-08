@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../components/AuthProvider';
 import { Book, FileText, Upload, Plus, CheckCircle, RefreshCw, AlertCircle, FileUp, Sparkles, Trash2 } from 'lucide-react';
 import UploadModal from '../../components/UploadModal';
 
@@ -16,16 +16,15 @@ interface Document {
 
 export default function CurriculumLibrary() {
   const router = useRouter();
+  const { session } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   // Fetch documents lists from Express
   const fetchDocuments = async () => {
+    if (!session) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/documents`, {
         headers: {
@@ -47,27 +46,29 @@ export default function CurriculumLibrary() {
   };
 
   useEffect(() => {
-    fetchDocuments();
+    if (session) {
+      fetchDocuments();
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
     
     // Set up polling to check ingestion progress of processing files
+    const hasProcessing = documents.some(doc => ['uploaded', 'processing'].includes(doc.status));
+    if (!hasProcessing) return;
+
     const interval = setInterval(() => {
-      const hasProcessing = documents.some(doc => ['uploaded', 'processing'].includes(doc.status));
-      if (hasProcessing) {
-        fetchDocuments();
-      }
+      fetchDocuments();
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [documents]);
-
-
+  }, [documents, session]);
 
   const handleDeleteDocument = async (docId: string, title: string) => {
     if (!confirm(`Are you sure you want to delete the document "${title}"? This will delete all its index data and vectors.`)) return;
+    if (!session) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const res = await fetch(`${apiUrl}/api/documents/${docId}`, {
         method: 'DELETE',
