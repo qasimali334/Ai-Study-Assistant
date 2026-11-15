@@ -1,33 +1,54 @@
-# ExamGenie: AI-Powered Study Assistant
+# AI Study Assistant (ExamGenie) - Full-Stack Next.js
 
-ExamGenie is a full-stack, syllabus-aligned AI study platform that allows students to upload textbooks and past papers (PDFs), processes them through a Retrieval-Augmented Generation (RAG) pipeline, and provides an interactive AI tutor, practice exam generator, and predictive trend analytics.
+A full-stack Next.js application (App Router, TypeScript) for AI-powered syllabus-aligned study, syllabus tutoring, past paper trend analytics, and automatic exam generation.
 
----
+## Features
+- **App Router & Serverless API Handlers**: All backend operations run via Next.js Route Handlers (`src/app/api/**/route.ts`).
+- **Interactive Syllabus Tutor**: Chat with AI contextually grounded in your uploaded documents and textbooks.
+- **Dynamic Exam Generation**: Generate MCQs, short-form, and long-form practice tests.
+- **Past-Paper Trend Analytics**: Analyze recurring concepts and predicted exam topics across multiple past papers.
+- **Supabase Authentication & Storage**: Row Level Security (RLS) and storage bucket management.
 
-##  Architecture & Integrations
+## Project Structure
+```
+/
+├── db/
+│   └── schema.sql        # Database schema and RLS policies
+├── public/               # Static assets
+├── src/
+│   ├── app/              # Next.js App Router (pages and API routes)
+│   │   ├── api/          # Route Handlers (/api/documents, /api/exams, /api/chat, /api/analytics)
+│   │   ├── auth/         # Login and registration
+│   │   ├── dashboard/    # Student dashboard, analytics, tutor, and exams
+│   │   ├── globals.css
+│   │   └── layout.tsx
+│   ├── components/       # UI components (AuthProvider, UploadModal, etc.)
+│   ├── lib/              # Database client, auth helpers
+│   ├── services/         # Modular business logic services
+│   ├── types/            # TypeScript interfaces
+│   └── middleware.ts     # Request routing and protection
+├── .env.example          # Environment variables template
+├── next.config.mjs
+├── tailwind.config.js
+└── package.json
+```
 
-ExamGenie is divided into three main components:
-1. **Frontend (`frontend/`)**: Built with **Next.js**, **Tailwind CSS**, and **Framer Motion**. It communicates directly with **Supabase Auth** for user sessions and uses **Socket.io-client** to talk to the Express backend for real-time tutoring.
-2. **Backend API Gateway (`backend/express/`)**: An **Express.js** Node server that handles file uploads, saves metadata and chat history to **Supabase Database (PostgreSQL)**, and routes intensive AI tasks to the FastAPI service.
-3. **AI & RAG Engine (`backend/python/`)**: A **FastAPI** Python server that extracts PDF text, chunks it, generates embeddings, uploads them to **Pinecone Vector Database**, and handles query generation using the **Groq API**.
+## Getting Started
 
----
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-###  Database Connection (Supabase PostgreSQL)
-Supabase acts as our PostgreSQL relational database, Auth provider, and PDF file store.
-* **Connection Method**: We connect using the official `@supabase/supabase-js` SDK on both the Next.js frontend (for client-side auth) and the Express backend (using the secret `SUPABASE_SERVICE_ROLE_KEY` to securely fetch/write database records bypassing RLS).
-* **PDF Storage**: Uploaded files are placed in a private Supabase Storage bucket called `curriculum-pdfs`. The Express backend downloads them via signed URLs or sends the buffer to the FastAPI server.
+### 2. Configure Environment Variables
+Copy `.env.example` to `.env.local` and add your Supabase credentials:
+```bash
+cp .env.example .env.local
+```
 
-###  AI Services & APIs
-To run the RAG pipeline, we integrate the following AI services:
-* **Vector Database (Pinecone)**:
-  - **Purpose**: Fast keyword-matching and context retrieval.
-  - **How it works**: When a PDF is uploaded, it is split into 1000-character chunks. These chunks are embedded (e.g., using `sentence-transformers` or OpenAI's embedding API) and uploaded to Pinecone under a unique *namespace* corresponding to that specific document.
-* **LLM Inference (Groq API)**:
-  - **Purpose**: Fast and cost-efficient text generation.
-  - **Models**:
-    - `llama-3.3-70b-versatile` or `mixtral-8x7b-32768` (for complex tutoring queries and past paper trend predictions).
-    - `llama-3.1-8b-instant` (for rapid MCQ and exam generation).
-  - **How it works**: The user's prompt + retrieved context from Pinecone is sent to Groq. Groq returns structured JSON (for exams) or streams text (for chat).
+### 3. Run the Development Server
+```bash
+npm run dev
+```
 
----
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
